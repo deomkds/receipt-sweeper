@@ -24,7 +24,7 @@ def ocr_image(image_object):
         complete_path = os.path.join(config.dbg_path, f"{threshold}_{config.current_file}")
         boosted_image.save(f"{complete_path}.png")
 
-    log(f"File needs OCR. Threshold: {threshold}.")
+    log(f"OCR threshold: {threshold}.")
 
     ocr_text = pytesseract.image_to_string(boosted_image, lang="por").split("\n")
 
@@ -39,7 +39,7 @@ def brute_force_pwd(pdf_object, digits):
     top = int("9" * digits)
     for pwd in range(0, top):
         if pdf_object.decrypt(f"{pwd:0{digits}d}") != 0:
-            log("PDF decrypted.")
+            log(f"PDF decrypted with password '{pwd:0{digits}d}'.")
             return True
 
     log("Wrong password.")
@@ -80,10 +80,9 @@ class UnknownReceipt:
         self.timestamp = self.timestamp_of_file()
         self.bank_guess = self.guess_bank()
 
-    def extract_text(self, force_ocr=False):
+    def extract_text(self, do_ocr=False):
         if self.file_path.endswith(".pdf"):
             log("File is a PDF.")
-
             reader = PdfReader(self.file_path)
 
             if reader.is_encrypted:
@@ -104,23 +103,23 @@ class UnknownReceipt:
 
             page = reader.pages[0]
 
+            list_of_text = [] # Useless, but PyCharm complains if this isn't here.
+
             try:  # We have to try here because some PDFs cause PdfReader to crash.
-                log("Attempting to read text layer...")
+                log("Reading PDF text layer...")
                 list_of_text = page.extract_text().split("\n")
                 if len(list_of_text) < 2:
-                    log("File does not seem to have a text layer, reverting to OCR...")
-                    list_of_text = ocr_image(pdf2image.convert_from_path(self.file_path)[0])
-                else:
-                    if force_ocr:
-                        log("Forcing OCR in PDF file...")
-                        list_of_text = ocr_image(pdf2image.convert_from_path(self.file_path)[0])
-                    else:
-                        log("File has text layer, no OCR needed.")
+                    log("File has no text layer, running OCR...")
+                    do_ocr = True
             except IndexError:
-                log("PdfReader crashed, reverting to OCR...")
+                log("PdfReader crashed, running OCR...")
+                do_ocr = True
+
+            if do_ocr:
                 list_of_text = ocr_image(pdf2image.convert_from_path(self.file_path)[0])
+
         else:
-            log("File is an image, OCR will be used.")
+            log("File is an image, running OCR...")
             list_of_text = ocr_image(Image.open(self.file_path))
 
         clean_list_of_text = [text for text in list_of_text if text.strip()]
@@ -131,29 +130,25 @@ class UnknownReceipt:
     def guess_bank(self):
         detected_bank = self.detect_bank()
         if (detected_bank == Banks.Unknown) and (self.file_path.endswith(".pdf")):
-            log("Couldn't identify bank from PDF, forcing OCR...")
+            log("Can't identify bank from text layer, forcing OCR...")
             self.extracted_text = self.extract_text(True)
             detected_bank = self.detect_bank()
 
         return detected_bank
 
     def detect_bank(self):
-        try:
-            common_text = self.extracted_text[0]
-        except IndexError:
+        if len(self.extracted_text) < 2:
             return Banks.Unknown
 
-        id_string = f"{self.extracted_text[0].lower()}{self.extracted_text[1].lower()}"
+        id_string = f"{self.extracted_text[0].lower()}{self.extracted_text[1].lower()}{self.extracted_text[-2]}"
 
         log(f"String used to identify bank: '{id_string}'.")
 
-        if len(self.extracted_text) < 2:
-            return Banks.Unknown
-        elif (common_text == "NU") or ("Olá" in common_text):
+        if "NU" in id_string or "Olá" in id_string:
             return Banks.Nubank
-        elif "mercado" in common_text:  # or "Comprovante" in self.extracted_text[0]:
+        elif "mercado" in id_string:  # or "Comprovante" in self.extracted_text[0]:
             return Banks.MercadoPago
-        elif "N26" in common_text:
+        elif "N26" in id_string:
             return Banks.N26
         elif "aunterpix" in id_string:
             return Banks.Inter
@@ -161,7 +156,7 @@ class UnknownReceipt:
             return Banks.C6
         elif "sucesso!valor" in id_string:
             return Banks.Claro
-        elif "genial" in id_string:
+        elif "@genial" in id_string:
             return Banks.Genial
         else:
             return Banks.Unknown

@@ -2,9 +2,28 @@
 import os
 import subprocess
 # First party.
-from simplelog import log as dbgln
+import config
+from simplelog import log
+
+
+def optimise(file_path):
+    if not config.OPTIMISE:
+        log(f"Optimise is disabled.", True)
+        return None
+
+    extension = file_path.split('.')[-1]
+
+    if extension.startswith(".pn"):
+        optimise_png(file_path)
+    elif extension.startswith(".jp"):
+        optimise_jpg(file_path)
+    else:
+        log(f"File is not JPEG or PNG. Leaving as is...", True)
+
 
 def optimise_png(file_path):
+    log(f"Optimising with 'oxipng'...")
+
     original_file_size_in_kib = float(os.path.getsize(file_path)) / 1024
 
     obj_data = subprocess.run(["oxipng", "-s", "-t", "1", "-a", "-p", "-o", "5", file_path], capture_output=True)
@@ -17,12 +36,14 @@ def optimise_png(file_path):
         optimised_file_size_in_kib = original_file_size_in_kib
         reduction_percentage = 0
 
-    dbgln(f"PNG file size optimised by {reduction_percentage}%, "
+    log(f"PNG file size optimised by {reduction_percentage}%, "
         f"reduced from {original_file_size_in_kib:.2f} KiB to {optimised_file_size_in_kib:.2f} KiB.", True)
     return
 
 
 def optimise_jpg(file_path):
+    log(f"Optimising with 'jpegoptim'...")
+
     original_file_size_in_kib = float(os.path.getsize(file_path)) / 1024
 
     obj_data = subprocess.run(["jpegoptim", "-p", "-t", "-s", "-w1", file_path], capture_output=True)
@@ -35,6 +56,6 @@ def optimise_jpg(file_path):
         optimised_file_size_in_kib = original_file_size_in_kib
         reduction_percentage = 0
 
-    dbgln(f"JPG file size optimised by {reduction_percentage}%, "
+    log(f"JPG file size optimised by {reduction_percentage}%, "
         f"reduced from {original_file_size_in_kib:.2f} KiB to {optimised_file_size_in_kib:.2f} KiB.", True)
     return

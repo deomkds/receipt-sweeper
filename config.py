@@ -3,15 +3,13 @@ import debug
 from pathlib import Path
 
 # PDF password remover.
-# Algumas faturas de cartão de crédito são protegidas por senha.
-# Essa senha costuma ser os 5 ou 6 primeiros digitos do CPF.
-# Coloque sua senha aqui para o script desbloquear essas faturas automaticamente.
-# Também é possível usar o CPF inteiro. O script vai removendo um número até desbloquear.
-# Caso não haja senha ou CPF, o script tentará desbloquear o boleto na força bruta.
-# Ou seja, gerando todos os números de 5 e 6 dígitos e tentando cada um deles.
-# Se nada disso der certo, o script pedirá a inserção manual da senha.
-CPF = "15870465710"
-BRUTE_FORCE_PWD = True  # Brute forcing the password can be slow. Setting this to False will disable it.
+# Some credit card statements are password-protected.
+# The password is usually the first 5 or 6 digits of your CPF.
+# Provide the password or full CPF for automatic unlocking.
+# If no password or CPF is given, the script will try every 5- and 6-digit combination.
+# If all attempts fail, you'll be asked to enter the password manually.
+CPF = ""
+BRUTE_FORCE_PWD = True  # Attempting every combination can be slow. Disable it by changing this to False.
 
 # OCR settings.
 THRESHOLD_DARK = 60
@@ -20,13 +18,11 @@ THRESHOLD_LIMIT = 200
 
 # Other settings.
 OPTIMISE = True  # Reduce file sizes.
-USE_AI = True   # Uses AI to interpret receipt contents. Requires ollama installed and running.
-OCR_ONLY = False # Performs only the OCR to facilitate the creation of new bank classes.
+OCR_ONLY = False # Performs OCR and saves the extracted text to help with debugging.
 
-DEBUG_MODE = True
-
-VERBOSE = DEBUG_MODE
-DRY_RUN = DEBUG_MODE
+DEBUG_MODE = False # Enables debug mode.
+VERBOSE = DEBUG_MODE # Log everything!
+DRY_RUN = DEBUG_MODE # With dry run enabled, no changes are committed to disk.
 
 current_file = ""
 home_dir = Path.home()

@@ -2,9 +2,8 @@
 import os
 # First party.
 import config
-from bank.genial import Genial
 from simplelog import log
-from optimise import optimise_jpg, optimise_png
+from optimise import optimise
 from bank.info import BankNames as Banks  # Too lazy to refactor?
 import detection
 
@@ -14,6 +13,8 @@ from bank.inter import Inter
 from bank.mercadopago import MercadoPago
 from bank.nubank import Nubank
 from bank.claro import Claro
+from bank.genial import Genial
+
 
 def list_files_in(path):
     all_files = os.scandir(path)
@@ -58,7 +59,7 @@ def main():
 
         unknown_receipt = detection.UnknownReceipt(file.path)
 
-        if config.OCR_ONLY and config.DEBUG_MODE:
+        if config.OCR_ONLY:
             log("OCR only mode enabled.")
             continue
 
@@ -96,21 +97,14 @@ def main():
         final_path = os.path.join(str(full_dst_path), str(new_file_name))
 
         try:
-            if not config.DRY_RUN:
-                os.rename(file.path, final_path)
-                if config.OPTIMISE:
-                    log(f"Optimisation enabled.")
-                    if receipt.extension.startswith(".pn"):
-                        log(f"Optimising with 'oxipng'...")
-                        optimise_png(final_path)
-                    elif receipt.extension.startswith(".jp"):
-                        log(f"Optimising with 'jpegoptim'...")
-                        optimise_jpg(final_path)
-                    else:
-                        log(f"File is not JPEG or PNG. Leaving as is...", True)
+            if config.DRY_RUN:
+                log("Dry run enabled. Changes not commited to disk.")
             else:
-                log("Dry run enabled. No changes will be made to the filesystem.")
+                os.rename(file.path, final_path)
+                optimise(final_path)
+
             log(f"Renamed to {new_file_name}!", True)
+
         except IsADirectoryError:
             log(f"[ERROR] Destination + New File Name is a directory: {final_path}.", True)
         except PermissionError:

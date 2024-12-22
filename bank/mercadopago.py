@@ -1,3 +1,5 @@
+from turtledemo.forest import start
+
 from simplelog import log
 import bank.info as info
 
@@ -21,18 +23,18 @@ class MercadoPago:
         self.receiver_bank = self.determine_name("receiver", "bank")
 
     def determine_type(self):
-        text = self.extracted_text[2]
+        text = f"{self.extracted_text[2]}{self.extracted_text[3]}".lower()
 
-        print(text)
-
-        if "Pagamento" in text:
+        if "pagamento" in text:
             return "Pagamento"
+        elif "fatura" in text:
+            return "Fatura"
         else:
             return "Outro"
 
     def determine_name(self, party, info_type):
 
-        if self.type == "Pagamento":
+        if self.type == "Pagamento" or self.type == "Fatura":
             return ""
 
         if party == "sender":
@@ -55,8 +57,10 @@ class MercadoPago:
         return info.extract_extension(self.file_path)
 
     def determine_description(self):
-        description_pos = info.find_position(self.extracted_text, "$", 2)
+        if self.type == "Fatura":
+            return "Fatura do Cartão Mercado Pago (App)"
 
+        description_pos = info.find_position(self.extracted_text, "$", 2)
         description = self.extracted_text[description_pos + 1].strip()
 
         if (description == "De") or ("R$" in description) or (":" in description):
@@ -70,4 +74,9 @@ class MercadoPago:
             return description
 
     def determine_amount(self):
-        return info.extract_amount(self.extracted_text)
+        if self.type == "Fatura":
+            value_pos = info.find_position(self.extracted_text, "Total R$", start_pos=20)
+            value_string = [self.extracted_text[value_pos]]
+            return info.extract_amount(value_string)
+        else:
+            return info.extract_amount(self.extracted_text)

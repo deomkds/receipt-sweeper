@@ -1,11 +1,11 @@
 # Bultin.
 import os
+import sys
 from datetime import datetime
 # First party.
 import config
 
-
-def log(text, essential=False, line_break=False):
+def log(text, essential=False, line_break=False, bail=False):
     if config.VERBOSE or essential:
         moment_obj = datetime.now()
         moment = moment_obj.strftime("%Y-%m-%d %H:%M:%S")
@@ -15,3 +15,6 @@ def log(text, essential=False, line_break=False):
         print(output_line)
         with open(path, "a") as log_file:
             log_file.write(f"{output_line}\n")
+
+        if bail:
+            sys.exit()

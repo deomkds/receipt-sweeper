@@ -21,18 +21,19 @@ class Genial:
         self.receiver_bank = self.determine_name("receiver", "bank")
 
     def determine_name(self, party, info_type):
-        if party == "sender":
-            text_id = "Remetente"
-        else:
-            text_id = "Destinatário"
+        name_offset = 1
+        text_id = "Nome"
+        full_name_pos = info.find_position(self.extracted_text, text_id, len(text_id)) + name_offset
 
-        full_name_pos = info.find_position(self.extracted_text, text_id, len(text_id))
+        if party == "sender":
+            full_name_pos = info.find_position(self.extracted_text, text_id, len(text_id), start_pos=full_name_pos) + name_offset
+
         bank_name_pos = info.find_position(self.extracted_text, "Instituição", 11, start_pos=full_name_pos)
 
         if info_type == "name":
-            name = self.extracted_text[full_name_pos].split(" ")[2].strip().title()
+            name = self.extracted_text[full_name_pos].split(" ")[0].strip().title()
         else: # Bank.
-            name = self.extracted_text[bank_name_pos].title()[12:]
+            name = self.extracted_text[bank_name_pos].title()
 
         log(f"Detected {party} {info_type}: {name}")
         return name
@@ -41,8 +42,7 @@ class Genial:
         return info.extract_extension(self.file_path)
 
     def determine_amount(self):
-        modified_text = [f"{self.extracted_text[4].replace("S", "$")}"] # Genial uses a shitty dollar sign OCR hates.
-        return info.extract_amount(modified_text)
+        return info.extract_amount(self.extracted_text)
 
     def determine_description(self):
         description_pos = info.find_position(self.extracted_text, "Mensagem", 1)

@@ -15,11 +15,9 @@ class Claro:
         self.folder = self.bank
 
         # Not applicable.
-        self.sender_full_name = ""
         self.sender_first_name = ""
         self.sender_bank = ""
 
-        self.receiver_full_name = ""
         self.receiver_first_name = ""
         self.receiver_bank = ""
 
