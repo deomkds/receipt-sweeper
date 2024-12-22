@@ -8,21 +8,37 @@ from pathlib import Path
 # Provide the password or full CPF for automatic unlocking.
 # If no password or CPF is given, the script will try every 5- and 6-digit combination.
 # If all attempts fail, you'll be asked to enter the password manually.
-CPF = ""
-BRUTE_FORCE_PWD = True  # Attempting every combination can be slow. Disable it by changing this to False.
 
-# OCR settings.
+# Removedor de senha de PDF.
+# Algumas faturas de cartão de crédito são protegidas por senha.
+# A senha geralmente corresponde aos primeiros 5 ou 6 digitos do CPF.
+# Informe a senha ou o CPF completo para remoção automática.
+# Caso nenhuma senha ou CPF seja informado, o script tentará todas as combinações possíveis.
+# Caso a força bruta falhe, o script solicitará a senha ao usuário.
+CPF = ""
+BRUTE_FORCE_PWD = True  # Desativar a força bruta | disable brute force.
+
+# File size optimization.
+# Redução de tamanho de arquivo.
+OPTIMISE = True  # Reduzir o tamanho dos arquivos | reduce file sizes.
+
+# Relative file paths.
+# Caminhos relativos à pasta `home`.
+PASTA_ORIGEM  = "OneDrive/"
+PASTA_DESTINO = "OneDrive/Documentos/Bancos/"
+
+# ================================== NÃO ALTERE AS CONFIGURAÇÕES A PARTIR DESSA LINHA ==================================
+
+# Debug settings, don't change.
+DEBUG_MODE = False # Enables debug mode.
+OCR_ONLY = False # Performs OCR and saves the extracted text to help with debugging.
+VERBOSE = DEBUG_MODE # Log everything!
+DRY_RUN = DEBUG_MODE # With dry run enabled, no changes are committed to disk.
+
+# OCR settings. Don't change.
 THRESHOLD_DARK = 60
 THRESHOLD_LIGHT = 220
 THRESHOLD_LIMIT = 200
-
-# Other settings.
-OPTIMISE = True  # Reduce file sizes.
-OCR_ONLY = False # Performs OCR and saves the extracted text to help with debugging.
-
-DEBUG_MODE = False # Enables debug mode.
-VERBOSE = DEBUG_MODE # Log everything!
-DRY_RUN = DEBUG_MODE # With dry run enabled, no changes are committed to disk.
 
 current_file = ""
 home_dir = Path.home()
@@ -38,6 +54,6 @@ if DEBUG_MODE:
     if DRY_RUN:
         options += ", dry run"
 else:
-    src_path = os.path.join(home_dir, "OneDrive/")
-    dst_path = os.path.join(home_dir, "OneDrive/Documentos/Bancos/")
+    src_path = os.path.join(home_dir, PASTA_ORIGEM)
+    dst_path = os.path.join(home_dir, PASTA_DESTINO)
     options = "normal mode"
