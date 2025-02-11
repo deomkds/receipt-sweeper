@@ -140,17 +140,17 @@ class UnknownReceipt:
         if len(self.extracted_text) < 2:
             return Banks.Unknown
 
-        id_string = f"{self.extracted_text[0].lower()}{self.extracted_text[1].lower()}{self.extracted_text[-2]}"
+        id_string = f"{self.extracted_text[0].lower()}{self.extracted_text[1].lower()}{self.extracted_text[-2]}".lower()
 
         log(f"String used to identify bank: '{id_string}'.")
 
-        if "NU" in id_string or "Olá" in id_string:
+        if "nu" in id_string:
             return Banks.Nubank
         elif "mercado" in id_string:  # or "Comprovante" in self.extracted_text[0]:
             return Banks.MercadoPago
         elif "N26" in id_string:
             return Banks.N26
-        elif "aunterpix" in id_string:
+        elif "aunterpix" in id_string or "aumnter" in id_string:
             return Banks.Inter
         elif "cobank" in id_string or "c6bank" in id_string:
             return Banks.C6
