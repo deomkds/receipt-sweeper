@@ -4,7 +4,7 @@ import os
 import config
 from simplelog import log
 from optimise import optimise
-from bank.info import BankNames as Banks  # Too lazy to refactor?
+from bank.info import BankNames as Banks
 import detection
 
 # Enabled banks.

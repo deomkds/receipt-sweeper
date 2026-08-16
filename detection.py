@@ -150,7 +150,7 @@ class UnknownReceipt:
             return Banks.MercadoPago
         elif "N26" in id_string:
             return Banks.N26
-        elif "aunterpix" in id_string or "aumnter" in id_string:
+        elif "nter" in id_string:
             return Banks.Inter
         elif "cobank" in id_string or "c6bank" in id_string:
             return Banks.C6
